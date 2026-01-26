@@ -163,4 +163,8 @@ https://www.digikey.com/en/resources/conversion-calculators/conversion-calculato
 
 https://docs.broadcom.com/doc/12353426
 
-### 3.3.    
+### Faydalı Kaynaklar
+
+- [Regülatör tasarımda kullanış olduğum tool webench](https://webench.ti.com/power-designer/switching-regulator/customize/4?noparams=0)
+
+- [ahmet turan hocanın notları](https://www.ahmetturanalgin.com/pcb-yerlesim-ve-duzeni-1)

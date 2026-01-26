@@ -1,0 +1,43 @@
+(kicad_sch (version 20230121) (generator eeschema)
+
+  (uuid 63a0379d-fc16-4019-b887-c3021204e6ee)
+
+  (paper "A4")
+
+  (lib_symbols
+  )
+
+
+  (sheet (at 112.4712 64.8208) (size 48.9204 34.0868) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid c89e0226-58a3-4dd7-b4e1-774a42131142)
+    (property "Sheetname" "mg2608" (at 112.4712 64.1092 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "mg_2608.kicad_sch" (at 112.4712 99.4922 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (pin "4V" input (at 112.4712 72.0852 180)
+      (effects (font (size 1.27 1.27)) (justify left))
+      (uuid 2f5284eb-55b1-4efb-a7bd-ad712b5110f8)
+    )
+    (pin "uart1_rx" input (at 112.4712 80.518 180)
+      (effects (font (size 1.27 1.27)) (justify left))
+      (uuid ad57d9b8-eafb-4a22-94d7-341faf7b2bd9)
+    )
+    (pin "uart1_tx" input (at 112.4712 87.4268 180)
+      (effects (font (size 1.27 1.27)) (justify left))
+      (uuid a7cf58f1-39ae-4e2a-b3a0-dea59e623c62)
+    )
+    (instances
+      (project "mg2608"
+        (path "/63a0379d-fc16-4019-b887-c3021204e6ee" (page "2"))
+      )
+    )
+  )
+
+  (sheet_instances
+    (path "/" (page "1"))
+  )
+)
