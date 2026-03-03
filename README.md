@@ -156,12 +156,54 @@ dielektrik kayıp baskın hale gelir. Böyle PCBlerde standart FR4 yerine dielek
 - DC’yi keser ama ped geniş olduğu için lokal olarak empedansı düşürür.
 - Alt katman boşaltılarak empedans yeniden dengelenir.
 
-
 ![Ti Calculator](image-7.png)
 https://www.digikey.com/en/resources/conversion-calculators/conversion-calculator-pcb-trace-impedance
 
 
 https://docs.broadcom.com/doc/12353426
+
+## 4. Dekuplaj (Bypass) Kapasitörü ve Çalışma Mantığı
+
+Dijital entegreler (örneğin mikrodenetleyiciler, FPGA'ler veya yüksek hızlı RF modülleri) durum değiştirdiklerinde, nanosaniyeler içinde güç hattından aniden yüksek bir akım ($di/dt$) talep ederler. Ancak ana güç kaynağı (VRM) ile entegre arasındaki bu anlık enerji transferinde aşılması gereken fiziksel bir engel vardır.
+
+### Temel Problem: Parazitik İndüktans ve Voltaj Çökmesi
+
+PCB yollarının fiziksel doğası gereği sahip olduğu **parazitik indüktans ($L$)**, bu ani akım artışına karşı direnç gösterir. İndüktansın akım değişimine gösterdiği bu tepki, entegrenin besleme pinlerinde anlık ve kritik voltaj çökmelerine (voltage droop) neden olur. Bu durum şu temel fizik formülüyle ifade edilir:
+
+$$V = L \cdot \frac{di}{dt}$$
+
+
+
+### Çözüm: Yerel Enerji Deposu
+
+Bu fiziksel problemi aşmak için **dekuplaj (bypass) kapasitörleri**, entegrenin besleme (VCC) ve toprak (GND) pinlerine mümkün olan en kısa mesafede yerleştirilir. Bu stratejik yerleşimin sisteme sağladığı iki kritik fayda vardır:
+
+* **Anlık Akım Krizini Çözmek:** Kapasitör, entegrenin hemen dibinde "yerel bir enerji deposu" olarak görev yapar. Uzun PCB yollarının indüktansını aradan çıkararak, entegrenin anlık akım talebini voltaj çökmesine fırsat vermeden şimşek hızında karşılar.
+* **Güç Bütünlüğünü (Power Integrity) Korumak:** Entegrenin kendi içinde ürettiği yüksek frekanslı anahtarlama gürültüsünü, kartın ana güç hattına sızmasına izin vermeden hemen oracıkta toprağa (GND) aktarır (bypass eder).
+
+[Eric Bogatin'ın Ferrite bead videosundaki açıklaması](https://www.youtube.com/watch?v=HaLMjVkKYMw)
+[Eric Bogatin decoupling videosu](https://youtu.be/ARwBwHZESOY)
+
+## 5. Ferrite Bead (Ferit Boncuk) ve Filtreleme Esasları
+
+Ferrite bead, temelde bir indüktör (bobin) olmakla birlikte, içindeki ferit malzemesi sayesinde standart güç indüktörlerinden farklı bir elektriksel karaktere sahiptir. Yüksek akım taşımak için tasarlanan güç indüktörlerinin DC dirençleri (DCR) miliohm seviyelerindeyken, ferrite bead'ler filtreleme amacıyla üretildikleri için tipik olarak yarım ohm ile 1-2 ohm arasında çok daha yüksek bir DC dirence sahiptir.
+
+
+
+Güç dağıtım ağlarında (PDN) ferrite bead kullanımının temel amacı, kart üzerindeki anahtarlamalı güç kaynaklarının (VRM) veya diğer yüksek hızlı dijital elemanların güç hattında yarattığı "kirliliği" (gürültüyü), dışarıdan gelen bu kirliliğe karşı çok hassas olan analog donanımlardan (ADC, PLL, DAC vb.) uzak tutmaktır.
+
+ * **Eğer bir switching Regülatör kullanılıyorsa (buck bust converter) güç hatlarında switching Regülatör doğası gereği gürültü oluşur. Filtre kullanmak yerine LDO Regülatörler de kullanılabilir.** 
+ * Aslında LC fitre tasarlıyoruz biz.
+
+### Tasarımda Dikkat Edilmesi Gereken Kritik Kurallar
+
+* **Sadece Düşük Akımlı Hatlarda Kullanılmalıdır:** Ferrite bead'in sahip olduğu yüksek DC direnç (DCR) nedeniyle, üzerinden yüksek veya değişken (switching) akım geçen hatlarda kullanılması büyük bir DC voltaj düşümüne (IR drop) yol açar. Bu sebeple, yüksek $di/dt$ ile anahtarlama yapan dijital entegrelerin beslemelerinde asla kullanılmamalı; sadece düşük ve sabit akım çeken hassas analog pinlerin (örn. AVCC, VDDA) izolasyonunda tercih edilmelidir.
+* **Asla Tek Başına Kullanılmamalıdır:** Güç hattına filtreleme amacıyla sadece bir ferrite bead seri olarak eklenirse, bead'in indüktansı ile entegrenin (veya yolların) parazitik kapasitansı birleşerek bir "LC Tank" devresi oluşturur. Bu durum, gürültüyü engellemek yerine yüksek frekanslı devasa bir çınlamaya (ringing) sebep olarak durumu daha da kötüleştirir.
+
+
+
+* **Kasıtlı LC Filtre Tasarımı:** Bu eleman her zaman bir Alçak Geçiren Filtre (Low-Pass Filter) topolojisinin parçası olarak, yani entegre tarafında mutlaka uygun bir kapasitör (C) ile birlikte "LC filtresi" oluşturacak şekilde tasarlanmalıdır.
+* **Direnç Karakteristiği Bir Avantajdır:** LC filtrelerinde karşılaşılan en büyük tehlike olan rezonansın (High-Q) sönümlenmesi gerekir. Ferrite bead'in sahip olduğu o yüksek DC direnç, bu noktada bir dezavantaj değil; aksine rezonansı bastıran (damping) ve filtreyi kararlı kılan en önemli özelliktir.
 
 ### Faydalı Kaynaklar
 
