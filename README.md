@@ -28,9 +28,13 @@ kısaca;
 *Hot Loop* topolojiden topolojiye farklılık gösterir.
 
 Buck Converter *Hot Loop*
+
 ![Buck Converter Hot Loop](image-1.png)
+
 Boost Converter *Hot Loop*
+
 ![alt text](image-2.png)
+
 
 *Hot loop araştırmasında kullandığım faydalı kaynaklar*
 -
@@ -166,7 +170,7 @@ https://docs.broadcom.com/doc/12353426
 
 Dijital entegreler (örneğin mikrodenetleyiciler, FPGA'ler veya yüksek hızlı RF modülleri) durum değiştirdiklerinde, nanosaniyeler içinde güç hattından aniden yüksek bir akım ($di/dt$) talep ederler. Ancak ana güç kaynağı (VRM) ile entegre arasındaki bu anlık enerji transferinde aşılması gereken fiziksel bir engel vardır.
 
-### Temel Problem: Parazitik İndüktans ve Voltaj Çökmesi
+### 4.1. Temel Problem: Parazitik İndüktans ve Voltaj Çökmesi
 
 PCB yollarının fiziksel doğası gereği sahip olduğu **parazitik indüktans ($L$)**, bu ani akım artışına karşı direnç gösterir. İndüktansın akım değişimine gösterdiği bu tepki, entegrenin besleme pinlerinde anlık ve kritik voltaj çökmelerine (voltage droop) neden olur. Bu durum şu temel fizik formülüyle ifade edilir:
 
@@ -174,15 +178,17 @@ $$V = L \cdot \frac{di}{dt}$$
 
 
 
-### Çözüm: Yerel Enerji Deposu
+### 4.2. Çözüm: Yerel Enerji Deposu
 
 Bu fiziksel problemi aşmak için **dekuplaj (bypass) kapasitörleri**, entegrenin besleme (VCC) ve toprak (GND) pinlerine mümkün olan en kısa mesafede yerleştirilir. Bu stratejik yerleşimin sisteme sağladığı iki kritik fayda vardır:
 
 * **Anlık Akım Krizini Çözmek:** Kapasitör, entegrenin hemen dibinde "yerel bir enerji deposu" olarak görev yapar. Uzun PCB yollarının indüktansını aradan çıkararak, entegrenin anlık akım talebini voltaj çökmesine fırsat vermeden şimşek hızında karşılar.
 * **Güç Bütünlüğünü (Power Integrity) Korumak:** Entegrenin kendi içinde ürettiği yüksek frekanslı anahtarlama gürültüsünü, kartın ana güç hattına sızmasına izin vermeden hemen oracıkta toprağa (GND) aktarır (bypass eder).
+[Eric Bogatin decoupling videosu](https://youtu.be/ARwBwHZESOY)
 
 [Eric Bogatin'ın Ferrite bead videosundaki açıklaması](https://www.youtube.com/watch?v=HaLMjVkKYMw)
-[Eric Bogatin decoupling videosu](https://youtu.be/ARwBwHZESOY)
+
+
 
 ## 5. Ferrite Bead (Ferit Boncuk) ve Filtreleme Esasları
 
@@ -195,7 +201,7 @@ Güç dağıtım ağlarında (PDN) ferrite bead kullanımının temel amacı, ka
  * **Eğer bir switching Regülatör kullanılıyorsa (buck bust converter) güç hatlarında switching Regülatör doğası gereği gürültü oluşur. Filtre kullanmak yerine LDO Regülatörler de kullanılabilir.** 
  * Aslında LC fitre tasarlıyoruz biz.
 
-### Tasarımda Dikkat Edilmesi Gereken Kritik Kurallar
+### 5.1. Tasarımda Dikkat Edilmesi Gereken Kritik Kurallar
 
 * **Sadece Düşük Akımlı Hatlarda Kullanılmalıdır:** Ferrite bead'in sahip olduğu yüksek DC direnç (DCR) nedeniyle, üzerinden yüksek veya değişken (switching) akım geçen hatlarda kullanılması büyük bir DC voltaj düşümüne (IR drop) yol açar. Bu sebeple, yüksek $di/dt$ ile anahtarlama yapan dijital entegrelerin beslemelerinde asla kullanılmamalı; sadece düşük ve sabit akım çeken hassas analog pinlerin (örn. AVCC, VDDA) izolasyonunda tercih edilmelidir.
 * **Asla Tek Başına Kullanılmamalıdır:** Güç hattına filtreleme amacıyla sadece bir ferrite bead seri olarak eklenirse, bead'in indüktansı ile entegrenin (veya yolların) parazitik kapasitansı birleşerek bir "LC Tank" devresi oluşturur. Bu durum, gürültüyü engellemek yerine yüksek frekanslı devasa bir çınlamaya (ringing) sebep olarak durumu daha da kötüleştirir.
@@ -205,8 +211,93 @@ Güç dağıtım ağlarında (PDN) ferrite bead kullanımının temel amacı, ka
 * **Kasıtlı LC Filtre Tasarımı:** Bu eleman her zaman bir Alçak Geçiren Filtre (Low-Pass Filter) topolojisinin parçası olarak, yani entegre tarafında mutlaka uygun bir kapasitör (C) ile birlikte "LC filtresi" oluşturacak şekilde tasarlanmalıdır.
 * **Direnç Karakteristiği Bir Avantajdır:** LC filtrelerinde karşılaşılan en büyük tehlike olan rezonansın (High-Q) sönümlenmesi gerekir. Ferrite bead'in sahip olduğu o yüksek DC direnç, bu noktada bir dezavantaj değil; aksine rezonansı bastıran (damping) ve filtreyi kararlı kılan en önemli özelliktir.
 
-### Faydalı Kaynaklar
+### 5.2. Faydalı Kaynaklar
 
 - [Regülatör tasarımda kullanış olduğum tool webench](https://webench.ti.com/power-designer/switching-regulator/customize/4?noparams=0)
 
 - [ahmet turan hocanın notları](https://www.ahmetturanalgin.com/pcb-yerlesim-ve-duzeni-1)
+
+
+## 6. PCB Tasarımında Topraklama (Ground), Şase (Chassis) ve EMI Kontrolü
+
+Elektronik tasarımlarda GND (Sinyal Toprağı) ve Şase (Chassis) kavramları birbirine karıştırılabilir, ancak üstlendikleri görevler tamamen farklıdır. Sinyal toprağı devrenin referans noktası ve dönüş yoluyken; şase, güvenliği sağlayan ve dış/iç elektromanyetik gürültüleri (EMI) engelleyen fiziksel bir kalkandır (Faraday Kafesi).
+
+### 6.1. Toprak Düzlemini Bölme (Ground Splitting) Yanılgısı ve Dönüş Yolu
+
+Geçmişte yaygın olan "Analog ve Dijital ground'ları birbirinden ayırın (split)" kuralı, modern ve yüksek frekanslı tasarımlarda büyük EMI sorunlarına yol açan bir hatadır. 
+
+![alt text](image-8.png)
+* **Dönüş Yolu Kuralı:** Yüksek hızlı (yüksek frekanslı) sinyallerin dönüş akımları, en kısa mesafeden değil, en düşük empedanslı yoldan; yani gidiş yolunun tam altındaki referans (ground) düzleminden akar.
+* **Anten Etkisi (Loop Area):** Eğer toprak düzlemi bölünür (yarık açılır) ve bir sinyal bu yarığın üzerinden geçirilirse, dönüş akımı yarığın etrafından dolanmak zorunda kalır. Bu durum, gidiş ve dönüş yolu arasındaki döngü alanını (loop area) devasa boyutlara ulaştırarak o hattı bir **çerçeve antene (loop antenna)** çevirir. Kart, etrafa EMI saçmaya ve dış gürültüleri toplamaya başlar.
+* **Fiziksel Ayırma (Partitioning):** Toprağı bakır seviyesinde bölmek yerine, komponentler gruplandırılmalıdır. Tüm analog devreler kartın bir köşesinde, dijital devreler başka bir köşesinde toplanmalı; ancak altlarındaki toprak düzlemi tek parça ve bütün bırakılmalıdır. 
+* **Geçiş Sinyallerini Yavaşlatma:** Dijital bölgeden analog bölgeye mecburen gitmesi gereken kontrol sinyalleri varsa, sınır noktasına bir seri direnç (örn. 1kΩ - 2kΩ) konularak sinyalin kenar geçiş hızları (edge rate) yavaşlatılmalı ve yüksek frekanslı harmonikler törpülenmelidir.
+
+### 6.2. 20H Kuralı (20H Rule) Efsanesi ve Kenar Işıması (Edge Radiation)
+
+Geçmişte EMI'yi engellemek için sıkça tavsiye edilen ancak modern tasarımlarda geçerliliğini yitiren bir PCB tasarım kuralıdır.
+
+![alt text](image-9.png)
+
+* **Kuralın Tanımı:** İç katmanlardaki Güç (Power) düzleminin, Toprak (GND) düzlemine göre dış kenarlardan 20H kadar (H = Sinyal ve GND katmanı arasındaki malzemenin kalınlığı) içeriye çekilmesidir. Amacı, kenarlardan dışarı taşan elektromanyetik alanı (fringing fields) GND düzlemine çarptırıp emilmesini sağlamaktı.
+* **Modern Yüksek Frekanslarda Geçersizliği:** EMC testleri, modern yüksek frekanslarda bu çekilme işleminin kenar ışımasını (edge radiation) durdurmadığını, aksine karttaki faydalı alanı daraltarak ve rezonansları değiştirerek EMI'yi daha da kötüleştirebildiğini göstermiştir.
+* **Doğru Çözüm (Via Stitching / Çit Yöntemi):** Güç düzlemini içeri çekmek yerine, kartın en dış kenarına çepeçevre bir GND yolu dönülmeli ve bu yol üzerinden iç katmanlardaki GND düzlemlerine sık aralıklarla via'lar atılmalıdır (Picket Fence). Bu metal dikiş ağı, dışarı sızacak dalgalar için kelimenin tam anlamıyla fiziksel bir duvar oluşturur.
+
+### 6.3. Şase Bağlantıları ve Kalkanlama (Shielding)
+
+Metal bir kasa, kendi başına mükemmel bir Faraday kafesidir. Toprağa (Earth Ground) bağlanması sinyalleri kesmesi için değil, elektriksel güvenlik (çarpılmayı önleme) ve statik yüklerin (ESD) deşarjı için gereklidir.
+
+* **360 Derece Kalkan Teması:** Dışarıdan gelen zırhlı/ekranlı kabloların kalkanı, şaseye tek bir ince tel ile (pigtail) bağlanmamalıdır. Yüksek frekanslarda bu ince tel bir indüktöre dönüşerek devasa bir empedans oluşturur (Örn: 300 MHz'de 18 ohm). Kalkan, konnektör yuvası üzerinden şaseye 360 derece (tam çepeçevre) temas etmelidir.
+* **GND ve Şase Arasındaki Kapasitif Köprü:** PCB'nin sinyal toprağı (GND), metal şaseden tamamen yalıtılırsa (floating), aralarındaki parazitik kapasitans nedeniyle yüksek frekanslı gürültüler kılıfa atlar. Gidecek yeri olmayan bu enerji, kasanın anten gibi ışıma yapmasına neden olur. 
+* **Eşpotansiyel Sağlama:** Bu anten etkisini önlemek için PCB GND ile metal şase arasına bir **Kapasitör** ve ona paralel yüksek değerli bir **Direnç (örn. 1 MΩ)** yerleştirilir. Kapasitör, yüksek frekanslı gürültülerde GND ile kasanın voltaj seviyelerini birbirine eşitleyerek (eşpotansiyel yaratarak) ışıma yapacak voltaj farkını ortadan kaldırır. Direnç ise biriken statik DC yükü yavaşça deşarj eder.
+
+
+### 6.4. Plastik Kasalarda (Şasesiz) Tasarım ve Diferansiyel Sinyaller
+
+Eğer tasarımda yalıtkan (plastik) bir kasa kullanılıyorsa, Faraday kafesi etkisi kaybolur. Bu durumda dışarıya çıkan veya dışarıdan gelen sinyalleri gürültüden korumak için zırhlı kablo (shield) kullanmanın bir anlamı kalmaz.
+
+
+
+* **Gerçek Diferansiyel Sinyalleşme (True Differential Signaling):** Plastik kasa kullanılıyorsa, dış I/O bağlantıları mutlaka diferansiyel olmalıdır (Ethernet, USB, RS485 vb.).
+* **Gürültü İptali (Common-Mode Rejection):** Diferansiyel hatlarda bilgi iki zıt sinyal üzerinden taşınır. Dışarıdan gelen elektromanyetik gürültü iki tele de eşit miktarda biner. Alıcı, iki sinyal arasındaki "farka" baktığı için, gürültü matematiksel olarak birbirini sıfırlar.
+* **Routing Kuralları:** Diferansiyel sinyallerin görevini yapabilmesi için hatların empedansları kusursuz eşleşmelidir. Bunun için iki yol (trace) birbirine **sıkı kuplajla (yan yana paralel)** gitmeli ve boyları milimetrik olarak **eşit uzunlukta (length matching)** çizilmelidir.
+
+### 6.5. Faydalı Kaynaklar 
+* [Ground in PCB Layout - Separate or Not Separate? (with Rick Hartley)](https://youtu.be/vALt6Sd9vlY?list=PLUvQzl37dPP3PGcEEN6f7-6qGlfWPVAvG)
+
+* https://www.ahmetturanalgin.com/toprak-ground-baglantilari 
+
+## 8. Katman Geçişleri ve Stitching (Dikiş) VIA Kullanımı
+
+Yüksek hızlı sinyaller PCB'de katman değiştirdiğinde (örneğin Top'tan Bottom'a), sinyalin tam altından akan dönüş akımının (return current) yolu kesilir. Bu durum fiziksel bir engel yaratır.
+
+### 8.1. Referans Düzlemi Değişimi ve Akımın Dağılması
+Sinyal yeni katmana geçtiğinde referans aldığı GND düzlemi de değişir. Eğer bu iki GND katmanını birbirine bağlayan yakın bir köprü yoksa, dönüş akımı bağlantı bulabilmek için geniş bir alana kontrolsüzce yayılır. 
+* **Sonuç:** Akımın yayılması döngü alanını (loop area) devasa boyuta çıkararak EMI (anten) ışımasına yol açar ve diğer sinyalleri bozarak sinyal bütünlüğünü (Signal Integrity) zedeler.
+
+**Stitching Via Yokken**
+![alt text](image-10.png)
+
+### 8.2. Stitching (Dikiş) VIA'nın Görevi ve Konumu
+Sinyalin katman değiştirdiği noktanın hemen yanına atılan GND VIA'larına **Stitching VIA** denir.
+* **Görevi:** Dönüş akımına, sinyali kopmadan takip edebilmesi için doğrudan ve düşük empedanslı bir köprü sunar.
+* **Konumu:** Sinyal VIA'sına ne kadar yakın olursa akım o kadar derli toplu akar. Uzak olursa akım sapar ve döngü büyür.
+* **Çoklu VIA:** Sinyalin etrafına birden fazla dikiş VIA'sı koymak, dönüş akımını mükemmel bir şekilde hapseder.
+
+**Stitching Via varken (1 adet)**
+
+![alt text](image-11.png)
+
+**Stitching Via varken (yol boyunca)**
+
+![alt text](image-12.png)
+### 8.3. Ne Zaman Stitching VIA'ya Gerek Yoktur?
+Kritik kural şudur: **Sinyal katman değiştirirken referans düzlemi de değişiyor mu?**
+Eğer sinyal L1'den L3'e geçiyorsa ve her ikisi de aralarındaki L2'yi referans GND olarak kullanıyorsa, dönüş akımı zaten L2 üzerinde akmaya devam edeceği için Stitching VIA'ya gerek yoktur.
+
+### 8.4. Gerçek Hayatta Tasarımlar Neden "Tesadüfen" Çalışır?
+Stitching VIA atılmamış kartların bazen sorunsuz çalışmasının sebebi, PCB üzerindeki dekuplaj kapasitörlerinin GND VIA'larıdır. Dönüş akımları bu VIA'ları tesadüfi bir köprü olarak kullanır. Ancak yüksek hızlı ve kritik sinyallerde iş şansa bırakılamaz; dönüş yolu mühendis tarafından kontrollü bir şekilde çizilmelidir.
+
+### 8.5. Faydalı Kaynaklar
+* [How GND VIAs Improve Your PCB Layout - Robert Feranec](https://youtu.be/nPx2iqmVAHY) - Katman değişimlerinde dönüş akımlarının Keysight ADS ile görselleştirilmiş EMI simülasyonları.
+
+ 
